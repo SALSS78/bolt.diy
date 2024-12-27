@@ -24,7 +24,14 @@ const PROVIDER_LIST: ProviderInfo[] = [
         provider: 'Anthropic',
         maxTokenAllowed: 8000,
       },
-      {
+  {
+  name: 'AzureGitHub',
+  staticModels: [], // Add any static models here if applicable
+  getDynamicModels: getAzureGitHubModels, // Add the dynamic model retrieval function
+  getApiKeyLink: 'https://learn.microsoft.com/en-us/auth-token/',
+    
+ },
+    {
         name: 'claude-3-5-sonnet-20240620',
         label: 'Claude 3.5 Sonnet (old)',
         provider: 'Anthropic',
