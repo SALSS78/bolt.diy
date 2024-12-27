@@ -42,7 +42,17 @@ const PROVIDER_LIST: ProviderInfo[] = [
     ],
     getApiKeyLink: 'https://console.anthropic.com/settings/keys',
   },
-  {
+{
+  name: 'AzureOpenAI',
+  staticModels: [], // No predefined static models as they are usually dynamic
+  getDynamicModels: getAzureModels, // Function to fetch models dynamically
+  getApiKeyLink: 'https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart',
+  labelForGetApiKey: 'Get API Key for Azure OpenAI',
+  icon: 'i-ph:cloud', // Optional: Azure-themed icon
+}
+  
+
+{
     name: 'Ollama',
     staticModels: [],
     getDynamicModels: getOllamaModels,
@@ -341,6 +351,37 @@ export async function getModelList(
   ];
   return MODEL_LIST;
 }
+
+async function getAzureModels(): Promise<ModelInfo[]> {
+  const apiKey = Cookies.get('apiKey'); // Assuming API key is stored in cookies
+  const endpoint = Cookies.get('endpoint'); // Store the Azure endpoint in cookies
+
+  if (!apiKey || !endpoint) {
+    throw new Error('Azure API Key or Endpoint is missing');
+  }
+
+  try {
+    const response = await fetch(`${endpoint}/openai/deployments?api-version=2022-12-01`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Azure models: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.value.map((deployment: any) => ({
+      name: deployment.id,
+      label: `${deployment.model} (${deployment.scale})`,
+      provider: 'AzureOpenAI',
+      maxTokenAllowed: deployment.maxTokenLimit || 4096, // Default to 4096 tokens if not specified
+    }));
+  } catch (error) {
+    console.error('Error fetching Azure models:', error);
+    throw error;
+  }
+}
+
 
 async function getTogetherModels(apiKeys?: Record<string, string>, settings?: IProviderSetting): Promise<ModelInfo[]> {
   try {
